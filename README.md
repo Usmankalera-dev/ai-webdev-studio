@@ -1,11 +1,11 @@
 # AI WebDev Studio
 
-Describe a website in plain words — Fable (Claude) generates the complete code with a live preview.
+Describe a website in plain words — Fable (via Coarena's free API) generates the complete code with a live preview.
 
 ## How it works
 
 1. Open `index.html` (or the live GitHub Pages site).
-2. Add your Fable API key in **Settings** (get one at https://console.anthropic.com/settings/keys). The key is stored only in your own browser's localStorage and is never sent anywhere except the Anthropic API.
+2. Add your Fable API key in **Settings** (get a free one at https://coarena.ai/account/api/keys). The key is stored only in your own browser's localStorage and is never sent anywhere except Coarena's API.
 3. Describe the website you want (English, Roman Urdu or Urdu), pick a theme, layout and sections, then click **Generate Website**.
 4. Preview it live, copy the code, or download it as `index.html`.
 
@@ -18,7 +18,7 @@ Describe a website in plain words — Fable (Claude) generates the complete code
 
 ## Notes
 
-- Fable is a paid model and needs API billing/credits on your Claude account.
+- The app calls Fable (claude-fable-5-2) through **Coarena's free API** (https://coarena.ai/api/v1/messages, Anthropic-compatible, Bearer auth): **$5 of model use a day, free — no card needed**, 30 requests/minute. Keys expire after 90 days, so make a new one if yours stops working.
 - No API key is stored in this repository. Never commit a key.
 
 Built by Usman Kalera — https://usmankalera-dev.github.io/portfolio/

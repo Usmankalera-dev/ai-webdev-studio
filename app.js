@@ -1,4 +1,4 @@
-/* AI WebDev Studio — calls Claude's Fable model to generate a complete website.
+/* AI WebDev Studio — calls Fable via Coarena's free API to generate a complete website.
    The API key is stored ONLY in the browser's localStorage under
    'ai-webdev-fable-key'. No key is ever hardcoded in this file. */
 
@@ -6,7 +6,7 @@
   "use strict";
 
   var STORAGE_KEY = "ai-webdev-fable-key";
-  var API_URL = "https://api.anthropic.com/v1/messages";
+  var API_URL = "https://coarena.ai/api/v1/messages";
   var MODEL = "claude-fable-5-2";
 
   var SYSTEM_PROMPT =
@@ -128,15 +128,14 @@
     );
   }
 
-  /* ---------- Fable (Claude) call ---------- */
+  /* ---------- Fable via Coarena call ---------- */
   function callFable(key, userText, maxTokens) {
     return fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
+        "Authorization": "Bearer " + key,
+        "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
         model: MODEL,
@@ -170,9 +169,9 @@
   }
 
   function apiErrorMessage(status) {
-    if (status === 400) return "The request was rejected by Fable (400). Please try a shorter or simpler description — this can also happen if your key is restricted by a zero-data-retention setting.";
-    if (status === 401 || status === 403) return "Invalid API key (error " + status + "). Please check your Fable (Claude) key in Settings — manage keys at <a href='https://console.anthropic.com/settings/keys' target='_blank' rel='noopener'>Claude Console</a>. Fable is a paid model, so your Claude account needs API billing/credits.";
-    if (status === 429) return "Fable rate limit reached (429). Please wait a minute and try again.";
+    if (status === 400) return "The request was rejected (400). Please try a shorter or simpler description.";
+    if (status === 401 || status === 403) return "Invalid API key (error " + status + "). Please check your Fable (Coarena) key in Settings — create a free key at <a href='https://coarena.ai/account/api/keys' target='_blank' rel='noopener'>coarena.ai → API Keys</a>. Coarena is free: $5 of model use a day, no card needed. Keys expire after 90 days, so make a new one if yours stopped working.";
+    if (status === 429) return "Daily free limit reached (429). Coarena gives $5 of free model use a day — it resets tomorrow. Please try again then.";
     return "Fable returned an error (HTTP " + status + "). Please try again.";
   }
 
@@ -182,8 +181,8 @@
     if (!key) {
       setStatus(
         "No Fable API key saved yet. Add your key in <strong>Settings — Fable API Key</strong> below. " +
-        "Get one at <a href='https://console.anthropic.com/settings/keys' target='_blank' rel='noopener'>Claude Console → API Keys</a>. " +
-        "Fable is a paid model, so your Claude account needs API billing/credits.",
+        "Get a free key at <a href='https://coarena.ai/account/api/keys' target='_blank' rel='noopener'>coarena.ai → API Keys</a>. " +
+        "Coarena is free: $5 of model use a day, no card needed. Keys expire after 90 days.",
         "error"
       );
       $("settingsBox").open = true;
