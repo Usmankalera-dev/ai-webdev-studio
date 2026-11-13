@@ -129,20 +129,34 @@
     );
   }
 
-  /* ---------- Fable via Coarena call ---------- */
-  function callFable(key, userText, maxTokens) {
-    return fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + key,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: maxTokens || 8192,
-        messages: [{ role: "user", content: SYSTEM_PROMPT + "\n\n" + userText }]
-      })
+  /* ---------- Fable via Coarena call ----------
+     Low effort keeps Fable's thinking small so most of the 16,384-token
+     budget goes to the website code itself. If Coarena ever rejects the
+     output_config field (400), retry once without it. */
+  function callFable(key, userText, maxTokens, useEffort) {
+    var body = {
+      model: MODEL,
+      max_tokens: maxTokens || 16384,
+      messages: [{ role: "user", content: SYSTEM_PROMPT + "\n\n" + userText }]
+    };
+    if (useEffort !== false) body.output_config = { effort: "low" };
+    function send(b) {
+      return fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + key,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify(b)
+      });
+    }
+    return send(body).then(function (res) {
+      if (res.status === 400 && body.output_config) {
+        var retryBody = { model: body.model, max_tokens: body.max_tokens, messages: body.messages };
+        return send(retryBody);
+      }
+      return res;
     });
   }
 
@@ -216,7 +230,7 @@
         generatedHtml = html;
         showResult(html);
         if (stopReason(data) === "max_tokens") {
-          setStatus("✓ Your website is ready — but the output may have been cut off (token limit). Try a simpler description or fewer sections.", "success");
+          setStatus("✓ Your website is ready — but the output may have been cut off. Coarena allows at most 16,384 tokens per reply and Fable's thinking uses part of it. Try a simpler description or fewer sections.", "success");
         } else {
           setStatus("✓ Your website is ready — preview it, copy the code, or download it as index.html.", "success");
         }
