@@ -1,5 +1,3 @@
-import { MODELS, MODEL_LABELS } from "../lib/coarena";
-
 export default function Settings({
   apiKey,
   onApiKeyChange,
@@ -9,8 +7,6 @@ export default function Settings({
   onTestKey,
   onClearKey,
   keyStatus,
-  model,
-  onModelChange,
   usage,
   settingsOpen,
   onToggleSettings,
@@ -83,17 +79,6 @@ export default function Settings({
               Remove
             </button>
           </div>
-
-          <label className="field-label" htmlFor="modelSelect">
-            Model
-          </label>
-          <select id="modelSelect" value={model} onChange={(e) => onModelChange(e.target.value)}>
-            {MODELS.map((m) => (
-              <option key={m} value={m}>
-                {MODEL_LABELS[m] || m}
-              </option>
-            ))}
-          </select>
 
           {usage && (
             <div className="usage-meter" aria-label="Today's free usage">

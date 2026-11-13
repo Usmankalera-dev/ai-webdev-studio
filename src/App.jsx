@@ -480,9 +480,12 @@ export default function App() {
     <>
       <header className="topbar">
         <div className="wrap topbar-inner">
-          <a className="brand" href="#">
-            AI WebDev <span>Studio</span>
-          </a>
+          <div className="brand-block">
+            <a className="brand" href="#">
+              AI WebDev <span>Studio</span>
+            </a>
+            <span className="brand-sub">by Usman Kalera • Rakhzaar Tech</span>
+          </div>
           <span className="badge">Powered by Fable via Coarena</span>
         </div>
       </header>
@@ -490,15 +493,33 @@ export default function App() {
       <main className="wrap">
         <section className="intro">
           <h1>
-            Describe it. <span>Fable builds it.</span>
+            Describe it. <span>Your AI builds it.</span>
           </h1>
           <p className="lead">
-            Type what kind of website you want — in English, Roman Urdu or Urdu — pick a style,
-            and get a complete, ready-to-use website.
+            Your own AI website studio — pick one of 9 AI models, describe the site you want in
+            English, Roman Urdu or Urdu, and get a complete, ready-to-use website.
           </p>
+          <div className="stats-row" aria-label="Platform facts">
+            <span className="stat-chip">
+              <strong>9</strong> AI models
+            </span>
+            <span className="stat-chip">
+              <strong>Free</strong> $5/day
+            </span>
+            <span className="stat-chip">
+              <strong>No</strong> sign-up
+            </span>
+            <span className="stat-chip">
+              <strong>Download</strong> &amp; host anywhere
+            </span>
+          </div>
         </section>
 
         <Steps currentStep={currentStep} />
+        <p className="how-line">
+          How it works: <strong>Describe</strong> → <strong>Generate</strong> →{" "}
+          <strong>Preview &amp; Download</strong> — your site, ready in under a minute.
+        </p>
 
         <div className="layout">
           <Builder
@@ -510,6 +531,8 @@ export default function App() {
             onLayoutChange={setLayout}
             sections={sections}
             onToggleSection={toggleSection}
+            model={model}
+            onModelChange={onModelChange}
             onGenerate={generate}
             busy={busyBool}
             loadingKind={busy}
@@ -524,8 +547,6 @@ export default function App() {
               onTestKey: testKey,
               onClearKey: clearKeyHandler,
               keyStatus,
-              model,
-              onModelChange,
               usage,
               settingsOpen,
               onToggleSettings: setSettingsOpen,
@@ -558,9 +579,29 @@ export default function App() {
 
         <footer className="foot">
           <p>
-            AI WebDev Studio — your Fable API key never leaves your browser except to call
-            Coarena&rsquo;s API. Generated sites are standalone HTML files you can host anywhere,
-            including GitHub Pages.
+            <strong>Built by Usman Kalera</strong> — Founder &amp; CEO, Rakhzaar Tech
+          </p>
+          <p className="foot-links">
+            <a
+              href="https://usmankalera-dev.github.io/portfolio/"
+              target="_blank"
+              rel="noopener"
+            >
+              Portfolio
+            </a>
+            {" • "}
+            <a
+              href="https://github.com/Usmankalera-dev/ai-webdev-studio"
+              target="_blank"
+              rel="noopener"
+            >
+              GitHub Repo
+            </a>
+          </p>
+          <p>
+            Your Fable API key never leaves your browser except to call Coarena&rsquo;s API.
+            Generated sites are standalone HTML files you can host anywhere, including GitHub
+            Pages.
           </p>
         </footer>
       </main>

@@ -1,5 +1,6 @@
 import { EXAMPLES, THEMES, LAYOUTS, LAYOUT_LABELS, SECTIONS } from "../lib/coarena";
 import Settings from "./Settings";
+import ModelCards from "./ModelCards";
 
 const LOADING_MESSAGES = [
   "Fable is building your website…",
@@ -18,6 +19,8 @@ export default function Builder(props) {
     onLayoutChange,
     sections,
     onToggleSection,
+    model,
+    onModelChange,
     onGenerate,
     busy,
     loadingKind,
@@ -124,6 +127,13 @@ export default function Builder(props) {
           </label>
         ))}
       </div>
+
+      <h2>3. Choose your AI model</h2>
+      <p className="hint">
+        9 AI models, free via Coarena — pick the one that fits your site. Fable 5.2 is the
+        flagship and best for complete websites.
+      </p>
+      <ModelCards model={model} onModelChange={onModelChange} />
 
       <button
         type="button"

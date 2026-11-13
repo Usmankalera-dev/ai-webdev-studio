@@ -24,17 +24,74 @@ export const MODELS = [
   "gpt-6-luna",
 ];
 
-export const MODEL_LABELS = {
-  "claude-fable-5-2": "claude-fable-5-2 (Fable, default)",
-  "claude-fable-5-1": "claude-fable-5-1",
-  "claude-fable-5": "claude-fable-5",
-  "claude-sonnet-5-5": "claude-sonnet-5-5",
-  "claude-opus-5-5": "claude-opus-5-5",
-  "claude-haiku-5-5": "claude-haiku-5-5",
-  "gemini-4-carbon": "gemini-4-carbon",
-  "gemini-3-8-flash": "gemini-3-8-flash",
-  "gpt-6-luna": "gpt-6-luna",
-};
+/* Model cards shown in the "Choose your AI model" section. These are the
+   platform's model lineup, served by Coarena (free, $5/day). They are not
+   the user's own creations — the branding is about the product being his. */
+export const MODEL_CARDS = [
+  {
+    id: "claude-fable-5-2",
+    name: "Fable 5.2",
+    bestFor: "Flagship — best for complete websites",
+    badge: "Flagship",
+    speed: 3,
+  },
+  {
+    id: "claude-fable-5-1",
+    name: "Fable 5.1",
+    bestFor: "Flagship-class, slightly lighter than 5.2",
+    badge: "Balanced",
+    speed: 3,
+  },
+  {
+    id: "claude-fable-5",
+    name: "Fable 5",
+    bestFor: "The original flagship — solid all-rounder",
+    badge: "Balanced",
+    speed: 3,
+  },
+  {
+    id: "claude-sonnet-5-5",
+    name: "Sonnet 5.5",
+    bestFor: "Balanced quality and speed",
+    badge: "Balanced",
+    speed: 4,
+  },
+  {
+    id: "claude-opus-5-5",
+    name: "Opus 5.5",
+    bestFor: "Most capable — complex, detailed sites",
+    badge: "Most capable",
+    speed: 2,
+  },
+  {
+    id: "claude-haiku-5-5",
+    name: "Haiku 5.5",
+    bestFor: "Fastest — simple sites and quick drafts",
+    badge: "Fast",
+    speed: 5,
+  },
+  {
+    id: "gemini-4-carbon",
+    name: "Gemini Carbon",
+    bestFor: "Creative ideas and fresh layouts",
+    badge: "Balanced",
+    speed: 3,
+  },
+  {
+    id: "gemini-3-8-flash",
+    name: "Gemini Flash",
+    bestFor: "Fast drafts and quick iterations",
+    badge: "Fast",
+    speed: 5,
+  },
+  {
+    id: "gpt-6-luna",
+    name: "GPT-6 Luna",
+    bestFor: "Versatile — good at a bit of everything",
+    badge: "Balanced",
+    speed: 4,
+  },
+];
 
 export const SYSTEM_PROMPT =
   "You are an expert front-end web developer. " +

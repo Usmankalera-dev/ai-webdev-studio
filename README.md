@@ -14,12 +14,13 @@ Built with **React + Vite**. The live site serves the built output (`index.html`
 ## Features
 
 - 3-step progress: 1 Describe → 2 Generate → 3 Preview & Download
+- **Choose your AI model**: a grid of 9 clickable model cards (Fable 5.2/5.1/5, Sonnet, Opus, Haiku, Gemini Carbon/Flash, GPT-6 Luna) with best-for notes, speed dots and the real model id — free via Coarena
 - Friendly loading state with elapsed seconds and rotating progress messages
 - 5 theme colours, 4 layouts, 6 optional sections
 - 3 one-click examples: Personal Portfolio, Restaurant, Online Shop
 - Live preview + Code tabs, Copy Code, Download HTML
 - Test Key button in Settings, plus a **usage meter** ("Today's free use: $X of $5")
-- **Model picker** in Settings (Fable 5.2/5.1/5, Sonnet, Opus, Haiku, Gemini Carbon/Flash, GPT-6 Luna) — saved in your browser
+- Stats row under the hero: 9 AI models • Free $5/day • No sign-up • Download & host anywhere
 - **▶ Continue** button: if a generation is cut off at the 16,384-token limit, it picks up exactly where it stopped
 - **Edit this website**: describe a change and the model updates the full site
 - **Recent websites**: your last 5 generated sites, saved in your browser — Load any of them back
