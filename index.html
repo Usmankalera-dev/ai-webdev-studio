@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI WebDev Studio — Build Websites with Fable (Claude)</title>
+<meta name="description" content="Describe a website in plain words and let Fable (Claude) build the complete code for you. Preview, copy and download instantly.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#">AI WebDev <span>Studio</span></a>
+    <span class="badge">Powered by Fable (Claude)</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <h1>Describe it. <span>Fable builds it.</span></h1>
+    <p class="lead">Type what kind of website you want — in English, Roman Urdu or Urdu — pick a style, and get a complete, ready-to-use website in seconds.</p>
+  </section>
+
+  <div class="layout">
+    <!-- ============ BUILDER ============ -->
+    <section class="panel builder">
+      <h2>1. Describe your website</h2>
+
+      <label class="field-label" for="prompt">What should the website be about?</label>
+      <textarea id="prompt" rows="5" placeholder="e.g. A website for my bakery in Lahore — menu, prices in PKR, gallery of cakes, opening hours and contact form…"></textarea>
+      <p class="hint">Apni website Roman Urdu ya Urdu me bhi describe kar sakte hain — jaise “mere restaurant ke liye ek khoobsurat website banao”.</p>
+
+      <div class="examples">
+        <span class="examples-label">Try an example:</span>
+        <button type="button" class="chip" data-example="portfolio">Personal Portfolio</button>
+        <button type="button" class="chip" data-example="restaurant">Restaurant</button>
+        <button type="button" class="chip" data-example="shop">Online Shop</button>
+      </div>
+
+      <h2>2. Pick a style</h2>
+
+      <p class="field-label">Theme colour</p>
+      <div class="swatches" id="themes">
+        <label class="swatch selected" style="--c:#f0a832" title="Amber"><input type="radio" name="theme" value="Amber (#f0a832)" checked><span></span>Amber</label>
+        <label class="swatch" style="--c:#10b981" title="Emerald"><input type="radio" name="theme" value="Emerald (#10b981)"><span></span>Emerald</label>
+        <label class="swatch" style="--c:#38bdf8" title="Sky"><input type="radio" name="theme" value="Sky (#38bdf8)"><span></span>Sky</label>
+        <label class="swatch" style="--c:#fb7185" title="Rose"><input type="radio" name="theme" value="Rose (#fb7185)"><span></span>Rose</label>
+        <label class="swatch" style="--c:#a78bfa" title="Violet"><input type="radio" name="theme" value="Violet (#a78bfa)"><span></span>Violet</label>
+      </div>
+
+      <p class="field-label">Layout type</p>
+      <div class="pills" id="layouts">
+        <label class="pill selected"><input type="radio" name="layout" value="Modern" checked>Modern</label>
+        <label class="pill"><input type="radio" name="layout" value="Minimal">Minimal</label>
+        <label class="pill"><input type="radio" name="layout" value="Bold and creative">Bold</label>
+        <label class="pill"><input type="radio" name="layout" value="Classic">Classic</label>
+      </div>
+
+      <p class="field-label">Sections to include</p>
+      <div class="checks" id="sections">
+        <label><input type="checkbox" value="Hero" checked> Hero</label>
+        <label><input type="checkbox" value="Services" checked> Services</label>
+        <label><input type="checkbox" value="Gallery"> Gallery</label>
+        <label><input type="checkbox" value="Pricing"> Pricing</label>
+        <label><input type="checkbox" value="Contact" checked> Contact</label>
+        <label><input type="checkbox" value="Footer" checked> Footer</label>
+      </div>
+
+      <button type="button" id="generateBtn" class="btn primary big">✦ Generate Website</button>
+      <p class="kbd-hint">Tip: press Ctrl + Enter inside the description box to generate.</p>
+
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <details class="settings" id="settingsBox">
+        <summary>⚙️ Settings — Fable API Key</summary>
+        <p class="settings-note">Your key is stored <strong>only in this browser</strong> (localStorage) and is used automatically on every visit. It is never sent anywhere except to Anthropic's Claude API. Fable is a paid model — your Claude account needs API billing/credits. Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Claude Console → API Keys</a>.</p>
+        <label class="field-label" for="apiKey">Fable (Claude) API key</label>
+        <div class="key-row">
+          <input type="password" id="apiKey" placeholder="Paste your Fable (Claude) API key here" autocomplete="off" spellcheck="false">
+          <button type="button" id="toggleKey" class="btn ghost small" title="Show / hide key">👁</button>
+        </div>
+        <div class="key-actions">
+          <button type="button" id="saveKeyBtn" class="btn small">Save Key</button>
+          <button type="button" id="testKeyBtn" class="btn ghost small">Test Key</button>
+          <button type="button" id="clearKeyBtn" class="btn ghost small">Remove</button>
+        </div>
+        <p id="keyStatus" class="key-status"></p>
+      </details>
+    </section>
+
+    <!-- ============ OUTPUT ============ -->
+    <section class="panel output">
+      <div class="output-head">
+        <h2>Your website</h2>
+        <div class="tabs" role="tablist">
+          <button type="button" id="tabPreview" class="tab active" role="tab" aria-selected="true">Preview</button>
+          <button type="button" id="tabCode" class="tab" role="tab" aria-selected="false">Code</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="copyBtn" class="btn small" disabled>📋 Copy Code</button>
+        <button type="button" id="downloadBtn" class="btn small" disabled>⬇ Download index.html</button>
+      </div>
+
+      <div id="previewPane" class="preview-pane">
+        <iframe id="previewFrame" title="Website preview" sandbox="allow-scripts allow-same-origin"></iframe>
+        <div id="emptyState" class="empty-state">
+          <div class="empty-icon">✦</div>
+          <p>Your generated website will appear here.<br>Describe it on the left and press <strong>Generate Website</strong>.</p>
+        </div>
+      </div>
+
+      <div id="codePane" class="code-pane hidden">
+        <pre><code id="codeView"></code></pre>
+      </div>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <p>AI WebDev Studio — your Fable API key never leaves your browser except to call Anthropic's Claude API. Generated sites are standalone HTML files you can host anywhere, including GitHub Pages.</p>
+  </footer>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
