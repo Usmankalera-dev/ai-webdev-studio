@@ -16,6 +16,7 @@
     "The document must be fully self-contained: all CSS inside one <style> tag in <head>, all JavaScript inside one <script> tag at the end of <body>. " +
     "Use semantic HTML, a modern premium design, and make it fully responsive for mobile and desktop. " +
     "Use real-looking sample content (real names, real prices, real text) — never lorem ipsum. " +
+    "Keep the code compact: tight CSS, no repeated long class lists, and a complete but concise page, so the whole document fits in one reply. " +
     "For images use direct https://images.unsplash.com photo URLs (with ?auto=format&fit=crop&w=1200&q=80). " +
     "Include a working mobile menu, smooth scrolling, and hover effects where sensible. " +
     "Write the visible content in the same language as the user's description (English, Urdu or Roman Urdu).";
@@ -200,7 +201,7 @@
     setLoading(true);
     setStatus('<span class="spinner"></span>Fable is building your website… this usually takes 10–30 seconds.', "info");
 
-    callFable(key, buildUserPrompt(), 8192)
+    callFable(key, buildUserPrompt(), 16384)
       .then(function (res) {
         if (!res.ok) {
           throw new Error(apiErrorMessage(res.status));
