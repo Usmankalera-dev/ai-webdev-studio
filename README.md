@@ -15,6 +15,11 @@ Describe a website in plain words — Fable (via Coarena's free API) generates t
 - 3 one-click examples: Personal Portfolio, Restaurant, Online Shop
 - Live preview + Code tabs, Copy Code, Download HTML
 - Test Key button in Settings
+- **Model picker** in Settings (Fable 5.2/5.1/5, Sonnet, Opus, Haiku, Gemini Carbon/Flash, GPT-6 Luna) — saved in your browser
+- **▶ Continue** button: if a generation is cut off at the 16,384-token limit, it picks up exactly where it stopped
+- **Edit this website**: describe a change and the model updates the full site
+- **Recent websites**: your last 5 generated sites, saved in your browser — Load any of them back
+- **Desktop / Mobile preview toggle**: check how the site looks on a phone (390px)
 
 ## Notes
 

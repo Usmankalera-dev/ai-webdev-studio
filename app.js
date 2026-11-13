@@ -6,8 +6,16 @@
   "use strict";
 
   var STORAGE_KEY = "ai-webdev-fable-key";
+  var MODEL_KEY = "ai-webdev-model";
+  var HISTORY_KEY = "ai-webdev-history";
   var API_URL = "https://coarena.ai/api/v1/messages";
-  var MODEL = "claude-fable-5-2";
+  var DEFAULT_MODEL = "claude-fable-5-2";
+  var MAX_HISTORY = 5;
+  var MODELS = [
+    "claude-fable-5-2", "claude-fable-5-1", "claude-fable-5",
+    "claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5",
+    "gemini-4-carbon", "gemini-3-8-flash", "gpt-6-luna"
+  ];
 
   var SYSTEM_PROMPT =
     "You are an expert front-end web developer. " +
@@ -20,6 +28,24 @@
     "For images use direct https://images.unsplash.com photo URLs (with ?auto=format&fit=crop&w=1200&q=80). " +
     "Include a working mobile menu, smooth scrolling, and hover effects where sensible. " +
     "Write the visible content in the same language as the user's description (English, Urdu or Roman Urdu).";
+
+  var CONTINUE_SYSTEM_PROMPT =
+    "You are an expert front-end web developer. " +
+    "The user gives you a standalone HTML document that was cut off in the middle. " +
+    "Continue writing it from exactly where it stopped. " +
+    "Rules: return ONLY the remaining HTML — do NOT repeat any part already written, no markdown fences, no backticks, no explanation, no commentary before or after. " +
+    "Finish the document completely, ending with </html>.";
+
+  var EDIT_SYSTEM_PROMPT =
+    "You are an expert front-end web developer. " +
+    "The user gives you a complete standalone HTML document plus ONE change they want. " +
+    "Rules: return ONLY the full updated standalone HTML document — no markdown fences, no backticks, no explanation, no commentary before or after. " +
+    "Keep everything else in the document the same unless the change requires it. " +
+    "The document must stay fully self-contained: all CSS inside one <style> tag in <head>, all JavaScript inside one <script> tag at the end of <body>. " +
+    "Keep the code compact: tight CSS, no repeated long class lists.";
+
+  var TEST_SYSTEM_PROMPT =
+    "Reply with exactly the text the user asks for, and nothing else.";
 
   var EXAMPLES = {
     portfolio:
@@ -53,8 +79,20 @@
   var tabCode = $("tabCode");
   var previewPane = $("previewPane");
   var codePane = $("codePane");
+  var continueBtn = $("continueBtn");
+  var editBox = $("editBox");
+  var editPromptEl = $("editPrompt");
+  var applyEditBtn = $("applyEditBtn");
+  var modelSelect = $("modelSelect");
+  var sizeDesktopBtn = $("sizeDesktopBtn");
+  var sizeMobileBtn = $("sizeMobileBtn");
+  var historyList = $("historyList");
+  var historyEmpty = $("historyEmpty");
+  var clearHistoryBtn = $("clearHistoryBtn");
 
   var generatedHtml = "";
+  var currentTitle = "";
+  var previewSize = "desktop"; /* session only */
 
   /* ---------- key handling ---------- */
   function getKey() {
@@ -87,6 +125,27 @@
     }
   }
 
+  /* ---------- model picker ---------- */
+  function getModel() {
+    try {
+      var m = (localStorage.getItem(MODEL_KEY) || "").trim();
+      return MODELS.indexOf(m) !== -1 ? m : DEFAULT_MODEL;
+    } catch (e) { return DEFAULT_MODEL; }
+  }
+
+  function setModel(value) {
+    try { localStorage.setItem(MODEL_KEY, value); } catch (e) { /* storage unavailable */ }
+  }
+
+  /* Only Fable models support output_config.effort — other models may reject it. */
+  function usesEffort(model) {
+    return model.indexOf("claude-fable") === 0;
+  }
+
+  function refreshModelUI() {
+    modelSelect.value = getModel();
+  }
+
   /* ---------- status messages ---------- */
   function setStatus(message, kind) {
     statusEl.innerHTML = message;
@@ -99,6 +158,26 @@
     generateBtn.innerHTML = loading
       ? '<span class="spinner"></span>Generating your website…'
       : "✦ Generate Website";
+    continueBtn.disabled = loading;
+    applyEditBtn.disabled = loading;
+  }
+
+  function setContinueLoading(loading) {
+    continueBtn.disabled = loading;
+    generateBtn.disabled = loading;
+    applyEditBtn.disabled = loading;
+    continueBtn.textContent = loading ? "Continuing…" : "▶ Continue";
+  }
+
+  function setEditLoading(loading) {
+    applyEditBtn.disabled = loading;
+    generateBtn.disabled = loading;
+    continueBtn.disabled = loading;
+    applyEditBtn.textContent = loading ? "Applying…" : "Apply change";
+  }
+
+  function showContinue(show) {
+    continueBtn.classList.toggle("hidden", !show);
   }
 
   /* ---------- option readers ---------- */
@@ -129,17 +208,19 @@
     );
   }
 
-  /* ---------- Fable via Coarena call ----------
+  /* ---------- model call via Coarena ----------
      Low effort keeps Fable's thinking small so most of the 16,384-token
-     budget goes to the website code itself. If Coarena ever rejects the
-     output_config field (400), retry once without it. */
-  function callFable(key, userText, maxTokens, useEffort) {
+     budget goes to the website code itself. Only Fable models get
+     output_config — other models may reject it. If Coarena ever rejects
+     the output_config field (400), retry once without it. */
+  function callFable(key, systemPrompt, userText, maxTokens) {
+    var model = getModel();
     var body = {
-      model: MODEL,
+      model: model,
       max_tokens: maxTokens || 16384,
-      messages: [{ role: "user", content: SYSTEM_PROMPT + "\n\n" + userText }]
+      messages: [{ role: "user", content: systemPrompt + "\n\n" + userText }]
     };
-    if (useEffort !== false) body.output_config = { effort: "low" };
+    if (usesEffort(model)) body.output_config = { effort: "low" };
     function send(b) {
       return fetch(API_URL, {
         method: "POST",
@@ -213,9 +294,9 @@
     }
 
     setLoading(true);
-    setStatus('<span class="spinner"></span>Fable is building your website… this usually takes 10–30 seconds.', "info");
+    setStatus('<span class="spinner"></span>' + getModel() + ' is building your website… this usually takes 10–30 seconds.', "info");
 
-    callFable(key, buildUserPrompt(), 16384)
+    callFable(key, SYSTEM_PROMPT, buildUserPrompt(), 16384)
       .then(function (res) {
         if (!res.ok) {
           throw new Error(apiErrorMessage(res.status));
@@ -228,10 +309,14 @@
           throw new Error("Fable returned an empty or incomplete reply. Please try again, or rephrase your description.");
         }
         generatedHtml = html;
+        currentTitle = description.slice(0, 50);
         showResult(html);
+        addToHistory(currentTitle, html);
         if (stopReason(data) === "max_tokens") {
-          setStatus("✓ Your website is ready — but the output may have been cut off. Coarena allows at most 16,384 tokens per reply and Fable's thinking uses part of it. Try a simpler description or fewer sections.", "success");
+          showContinue(true);
+          setStatus("✓ Your website is ready — but the output may have been cut off. Coarena allows at most 16,384 tokens per reply and Fable's thinking uses part of it. Press ▶ Continue below to finish it, or try a simpler description or fewer sections.", "success");
         } else {
+          showContinue(false);
           setStatus("✓ Your website is ready — preview it, copy the code, or download it as index.html.", "success");
         }
       })
@@ -253,7 +338,113 @@
     codeView.textContent = html;
     copyBtn.disabled = false;
     downloadBtn.disabled = false;
+    editBox.classList.remove("hidden");
     showTab("preview");
+  }
+
+  /* ---------- continue a cut-off generation ---------- */
+  function continueGeneration() {
+    var key = getKey();
+    if (!key) {
+      setStatus("No Fable API key saved yet. Add your key in <strong>Settings — Fable API Key</strong> below.", "error");
+      return;
+    }
+    if (!generatedHtml) return;
+
+    setContinueLoading(true);
+    setStatus('<span class="spinner"></span>Continuing your website…', "info");
+
+    callFable(key, CONTINUE_SYSTEM_PROMPT,
+      "Here is the HTML document so far (it was cut off mid-document):\n\n" + generatedHtml +
+      "\n\nContinue from exactly where it stopped.", 16384)
+      .then(function (res) {
+        if (!res.ok) {
+          throw new Error(apiErrorMessage(res.status));
+        }
+        return res.json();
+      })
+      .then(function (data) {
+        var chunk = cleanHtml(extractText(data));
+        if (!chunk || chunk.length < 20) {
+          throw new Error("Fable returned an empty continuation. Please press Continue again.");
+        }
+        generatedHtml = generatedHtml + chunk;
+        showResult(generatedHtml);
+        if (currentTitle) addToHistory(currentTitle, generatedHtml);
+        if (stopReason(data) === "max_tokens") {
+          showContinue(true);
+          setStatus("✓ Continued — but it was cut off again. Press ▶ Continue to keep going.", "success");
+        } else {
+          showContinue(false);
+          setStatus("✓ Your website is complete — preview it, copy the code, or download it as index.html.", "success");
+        }
+      })
+      .catch(function (err) {
+        var msg = (err && err.message) || "Network error — please check your internet connection and try again.";
+        if (err instanceof TypeError) {
+          msg = "Network error — could not reach the Fable API. Check your internet connection and try again.";
+        }
+        setStatus(msg, "error");
+      })
+      .finally(function () {
+        setContinueLoading(false);
+      });
+  }
+
+  /* ---------- edit the current website ---------- */
+  function applyEdit() {
+    var key = getKey();
+    if (!key) {
+      setStatus("No Fable API key saved yet. Add your key in <strong>Settings — Fable API Key</strong> below.", "error");
+      return;
+    }
+    if (!generatedHtml) return;
+    var change = editPromptEl.value.trim();
+    if (!change) {
+      setStatus("Please describe the change first.", "error");
+      editPromptEl.focus();
+      return;
+    }
+
+    setEditLoading(true);
+    setStatus('<span class="spinner"></span>Applying your change…', "info");
+
+    callFable(key, EDIT_SYSTEM_PROMPT,
+      "Here is the current complete HTML document:\n\n" + generatedHtml +
+      "\n\nRequested change:\n" + change, 16384)
+      .then(function (res) {
+        if (!res.ok) {
+          throw new Error(apiErrorMessage(res.status));
+        }
+        return res.json();
+      })
+      .then(function (data) {
+        var html = cleanHtml(extractText(data));
+        if (!html || html.length < 100 || html.toLowerCase().indexOf("<html") === -1) {
+          throw new Error("Fable returned an empty or incomplete reply. Please try again, or rephrase the change.");
+        }
+        generatedHtml = html;
+        showResult(html);
+        if (currentTitle) addToHistory(currentTitle, html);
+        editPromptEl.value = "";
+        if (stopReason(data) === "max_tokens") {
+          showContinue(true);
+          setStatus("✓ Change applied — but the output was cut off. Press ▶ Continue below to finish it.", "success");
+        } else {
+          showContinue(false);
+          setStatus("✓ Change applied — preview it, copy the code, or download it as index.html.", "success");
+        }
+      })
+      .catch(function (err) {
+        var msg = (err && err.message) || "Network error — please check your internet connection and try again.";
+        if (err instanceof TypeError) {
+          msg = "Network error — could not reach the Fable API. Check your internet connection and try again.";
+        }
+        setStatus(msg, "error");
+      })
+      .finally(function () {
+        setEditLoading(false);
+      });
   }
 
   /* ---------- tabs ---------- */
@@ -314,6 +505,82 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
+  /* ---------- recent websites (history) ---------- */
+  function loadHistory() {
+    try {
+      var list = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+
+  function saveHistoryList(list) {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch (e) { /* storage unavailable */ }
+  }
+
+  function addToHistory(title, html) {
+    var list = loadHistory();
+    /* A continue/edit of the same site updates its entry instead of adding a duplicate. */
+    if (list.length && list[0].title === title) {
+      list[0].html = html;
+      list[0].time = Date.now();
+    } else {
+      list.unshift({ title: title, time: Date.now(), html: html });
+    }
+    list = list.slice(0, MAX_HISTORY);
+    saveHistoryList(list);
+    renderHistory();
+  }
+
+  function formatHistoryTime(time) {
+    try {
+      return new Date(time).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    } catch (e) { return ""; }
+  }
+
+  function renderHistory() {
+    var list = loadHistory();
+    historyList.textContent = "";
+    historyEmpty.classList.toggle("hidden", list.length > 0);
+    list.forEach(function (entry) {
+      var li = document.createElement("li");
+      var titleEl = document.createElement("span");
+      titleEl.className = "history-title";
+      titleEl.textContent = entry.title || "Untitled website";
+      var timeEl = document.createElement("span");
+      timeEl.className = "history-time";
+      timeEl.textContent = formatHistoryTime(entry.time);
+      var loadBtn = document.createElement("button");
+      loadBtn.type = "button";
+      loadBtn.className = "btn ghost small";
+      loadBtn.textContent = "Load";
+      loadBtn.addEventListener("click", function () {
+        generatedHtml = entry.html;
+        currentTitle = entry.title;
+        showResult(entry.html);
+        showContinue(false);
+        setStatus("✓ Loaded “" + entry.title + "” — preview it, copy the code, or download it as index.html.", "success");
+      });
+      li.appendChild(titleEl);
+      li.appendChild(timeEl);
+      li.appendChild(loadBtn);
+      historyList.appendChild(li);
+    });
+  }
+
+  function clearHistory() {
+    saveHistoryList([]);
+    renderHistory();
+  }
+
+  /* ---------- preview size (session only) ---------- */
+  function setPreviewSize(size) {
+    previewSize = size;
+    var mobile = size === "mobile";
+    previewPane.classList.toggle("mobile", mobile);
+    sizeDesktopBtn.classList.toggle("active", !mobile);
+    sizeMobileBtn.classList.toggle("active", mobile);
+  }
+
   /* ---------- settings actions ---------- */
   function saveKey() {
     var key = apiKeyEl.value.trim();
@@ -336,7 +603,7 @@
       return;
     }
     showKeyState("Testing key…", false);
-    callFable(key, "Reply with exactly: OK", 16)
+    callFable(key, TEST_SYSTEM_PROMPT, "Reply with exactly: OK", 16)
       .then(function (res) {
         if (!res.ok) throw new Error(apiErrorMessage(res.status));
         return res.json();
@@ -344,9 +611,9 @@
       .then(function (data) {
         var text = extractText(data).trim();
         if (text) {
-          showKeyState("✓ Key works — Fable replied: “" + text.slice(0, 40) + "”.", true);
+          showKeyState("✓ Key works — " + getModel() + " replied: “" + text.slice(0, 40) + "”.", true);
         } else {
-          showKeyState("Key accepted, but Fable returned an empty reply. Try again.", false);
+          showKeyState("Key accepted, but the model returned an empty reply. Try again.", false);
         }
       })
       .catch(function (err) {
@@ -357,6 +624,22 @@
 
   /* ---------- wire up ---------- */
   generateBtn.addEventListener("click", generate);
+  continueBtn.addEventListener("click", continueGeneration);
+  applyEditBtn.addEventListener("click", applyEdit);
+  clearHistoryBtn.addEventListener("click", clearHistory);
+  sizeDesktopBtn.addEventListener("click", function () { setPreviewSize("desktop"); });
+  sizeMobileBtn.addEventListener("click", function () { setPreviewSize("mobile"); });
+  modelSelect.addEventListener("change", function () {
+    setModel(modelSelect.value);
+    setStatus("Model set to " + modelSelect.value + ".", "success");
+  });
+
+  editPromptEl.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      applyEdit();
+    }
+  });
 
   promptEl.addEventListener("keydown", function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -398,6 +681,8 @@
     apiKeyEl.type = apiKeyEl.type === "password" ? "text" : "password";
   });
 
-  /* auto-fill a saved key on every visit */
+  /* auto-fill a saved key and model on every visit, and show saved history */
   refreshKeyUI();
+  refreshModelUI();
+  renderHistory();
 })();

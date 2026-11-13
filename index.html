@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI WebDev Studio — Build Websites with Fable via Coarena</title>
 <meta name="description" content="Describe a website in plain words and let Fable via Coarena build the complete code for you. Preview, copy and download instantly.">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 <header class="topbar">
@@ -84,6 +84,18 @@
           <button type="button" id="testKeyBtn" class="btn ghost small">Test Key</button>
           <button type="button" id="clearKeyBtn" class="btn ghost small">Remove</button>
         </div>
+        <label class="field-label" for="modelSelect">Model</label>
+        <select id="modelSelect">
+          <option value="claude-fable-5-2" selected>claude-fable-5-2 (Fable, default)</option>
+          <option value="claude-fable-5-1">claude-fable-5-1</option>
+          <option value="claude-fable-5">claude-fable-5</option>
+          <option value="claude-sonnet-5-5">claude-sonnet-5-5</option>
+          <option value="claude-opus-5-5">claude-opus-5-5</option>
+          <option value="claude-haiku-5-5">claude-haiku-5-5</option>
+          <option value="gemini-4-carbon">gemini-4-carbon</option>
+          <option value="gemini-3-8-flash">gemini-3-8-flash</option>
+          <option value="gpt-6-luna">gpt-6-luna</option>
+        </select>
         <p id="keyStatus" class="key-status"></p>
       </details>
     </section>
@@ -101,7 +113,13 @@
       <div class="actions">
         <button type="button" id="copyBtn" class="btn small" disabled>📋 Copy Code</button>
         <button type="button" id="downloadBtn" class="btn small" disabled>⬇ Download index.html</button>
+        <span class="size-toggle tabs">
+          <button type="button" id="sizeDesktopBtn" class="tab active">🖥 Desktop</button>
+          <button type="button" id="sizeMobileBtn" class="tab">📱 Mobile</button>
+        </span>
       </div>
+
+      <button type="button" id="continueBtn" class="btn primary continue-btn hidden">▶ Continue</button>
 
       <div id="previewPane" class="preview-pane">
         <iframe id="previewFrame" title="Website preview" sandbox="allow-scripts allow-same-origin"></iframe>
@@ -114,6 +132,22 @@
       <div id="codePane" class="code-pane hidden">
         <pre><code id="codeView"></code></pre>
       </div>
+
+      <div id="editBox" class="edit-box hidden">
+        <h3>✏️ Edit this website</h3>
+        <label class="field-label" for="editPrompt">Describe a change</label>
+        <textarea id="editPrompt" rows="2" placeholder="e.g. add a pricing table, change the theme to green, make the hero taller…"></textarea>
+        <button type="button" id="applyEditBtn" class="btn small">Apply change</button>
+      </div>
+
+      <div class="history-box" id="historyBox">
+        <div class="history-head">
+          <h3>🕘 Recent websites</h3>
+          <button type="button" id="clearHistoryBtn" class="btn ghost small">Clear</button>
+        </div>
+        <ul id="historyList" class="history-list"></ul>
+        <p id="historyEmpty" class="history-empty">No websites yet — generate one and it will show up here.</p>
+      </div>
     </section>
   </div>
 
@@ -122,6 +156,6 @@
   </footer>
 </main>
 
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
